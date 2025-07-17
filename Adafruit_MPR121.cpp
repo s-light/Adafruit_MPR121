@@ -98,8 +98,15 @@ bool Adafruit_MPR121::begin(uint8_t i2caddr, TwoWire *theWire,
   writeRegister(MPR121_FDLT, 0x00);
 
   writeRegister(MPR121_DEBOUNCE, 0);
-  writeRegister(MPR121_CONFIG1, 0x10); // default, 16uA charge current
-  writeRegister(MPR121_CONFIG2, 0x20); // 0.5uS encoding, 1ms period
+  // FFI 00 = take 6 samples (default)
+  // CDC 010000 = 16uA charge current (default)
+  // 0x10 = 0b00010000
+  writeRegister(MPR121_CONFIG1, 0b00010000);
+  // CDT 001 = 0.5 μs (default)
+  // SFI 00 = take 4 samples (default)
+  // ESI 000 = 1ms interval
+  // 0x20 = 0b00100000
+  writeRegister(MPR121_CONFIG2, 0b00100000);
 
   setAutoconfig(autoconfig);
 
@@ -267,6 +274,8 @@ void Adafruit_MPR121::writeRegister(uint8_t reg, uint8_t value) {
       Adafruit_BusIO_Register(i2c_dev, MPR121_ECR, 1);
 
   uint8_t ecr_backup = ecr_reg.read();
+  // if ((reg == MPR121_ECR) || ((0x73 <= reg) && (reg <= 0x7A)) ||
+  //     ((MPR121_MHDR <= reg) && (reg <= MPR121_FDLT))) {
   if ((reg == MPR121_ECR) || ((0x73 <= reg) && (reg <= 0x7A))) {
     stop_required = false;
   }
